@@ -14,7 +14,7 @@ function diff(oldTree, newTree) {
 function diffAttr(oldAttrs, newAttrs) {
   let patch = {};
   for (const key in oldAttrs) {
-    if (object[key] !== newAttrs[key]) {
+    if (oldAttrs[key] !== newAttrs[key]) {
       patch[key] = newAttrs[key]; //老属性被删除 就是undefined
     }
   }
@@ -27,9 +27,33 @@ function diffAttr(oldAttrs, newAttrs) {
   return patch;
 }
 const ATTRS = "ATTRS";
+const TEXT = "TEXT";
+const REMOVE = "REMOVE";
+const REPLACE = "";
+let Index = 0;
+function diffChildren(oldChildren, newChildren, index, patches) {
+  oldChildren.forEach((child, idx) => {
+    walk(child, newChildren[idx], ++Index, patches);
+  });
+}
+function isString(node) {
+  return Object.prototype.toString.call(node) === "[object String]";
+}
 function walk(oldTree, newTree, index, patches) {
-  let currentPatch = [];
-  if (oldTree.type === newTree.type) {
+  let currentPatch = []; //每个元素都有一个补丁对象
+  if (!newTree) {
+    currentPatch.push({
+      type: REMOVE,
+      index,
+    });
+  } else if (isString(oldTree) && isString(newTree)) {
+    if (oldTree !== newTree) {
+      currentPatch.push({
+        type: TEXT,
+        text: newTree,
+      });
+    }
+  } else if (oldTree.type === newTree.type) {
     //比较属性是否有更改
     let attrs = diffAttr(oldTree.props, newTree.props);
     if (Object.keys(attrs).length) {
@@ -38,6 +62,14 @@ function walk(oldTree, newTree, index, patches) {
         attrs,
       });
     }
+    diffChildren(oldTree.children, newTree.children, index, patches);
+  } else {
+    // 节点被替换
+    currentPatch.push({
+      type: REPLACE,
+      index,
+      newNode: newTree,
+    });
   }
   //当前元素有更新补丁 加入大补丁包
   if (currentPatch.length) patches[index] = currentPatch;

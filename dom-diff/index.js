@@ -1,5 +1,6 @@
 import { render, createElement, renderDom } from "./element.js";
 import diff from "./diff.js";
+import patch from "./patch";
 let virtualDom = createElement("ul", { class: "test" }, [
   createElement(
     "li",
@@ -15,6 +16,8 @@ let virtualDom1 = createElement("ul", { class: "test" }, [
   }),
 ]);
 let el = render(virtualDom);
-let patchs = diff(virtualDom, virtualDom1);
-console.log(el);
+
 renderDom(el, document.getElementById("app"));
+let patchs = diff(virtualDom, virtualDom1);
+patch(el, patchs);
+console.log(el, patchs);
