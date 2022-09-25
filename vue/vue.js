@@ -11,7 +11,7 @@ class Vue {
     }
   }
   proxyData(data) {
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach(key => {
       Object.defineProperty(this, key, {
         get() {
           return data[key];
@@ -21,5 +21,8 @@ class Vue {
         },
       });
     });
+  }
+  use() {
+    console.log(arguments);
   }
 }
